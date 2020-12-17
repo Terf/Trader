@@ -1,2 +1,8 @@
 robin_stocks
 mysql-connector-python
+pandas
+scipy
+keras
+tensorflow
+matplotlib
+sklearn
