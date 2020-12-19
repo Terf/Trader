@@ -18,8 +18,11 @@ class Trader:
 
     def __init__(self):
         self.prices = []
-        self.model_path = '/var/keras/model.h5'
         self.window_size = 20
+        self.epochs = 100
+        self.neurons = 100
+        self.lr = 0.001
+        self.model_path = '/var/keras/model.h5'
 
     def create_model(self, layer1, layer2, layer3, layer4, lr):
         model = Sequential()
@@ -111,18 +114,15 @@ class Trader:
         return x_train, y_train, x_test, y_test
 
     def train(self):
-        epochs = 5
-        neurons = 100
         training_pct = 0.8
         val_pct = 0.2
-        lr = 0.001
 
         x_train, y_train, x_test, y_test = self.build_train_and_test_data(
             self.prices, self.window_size, training_pct, True)
 
-        model = self.create_model(1, self.window_size, neurons, 1, lr)
+        model = self.create_model(1, self.window_size, self.neurons, 1, self.lr)
 
-        model.fit(x_train, y_train, batch_size=32, epochs=epochs,
+        model.fit(x_train, y_train, batch_size=32, epochs=self.epochs,
                   validation_split=val_pct, shuffle=False)
         mse = model.evaluate(x_test, y_test)
         print('Accuracy/Mean Squared Error: ', mse)
@@ -139,15 +139,18 @@ class Trader:
 
     def predict(self, plot = False):
         if os.path.isfile(self.model_path):
+            print("Loading", self.model_path)
             model = load_model(self.model_path)
         else:
+            print("Training new model")
             model = self.train()
+        print(model.summary())
         x_train, y_train, x_test, y_test = self.build_train_and_test_data(
             self.prices, self.window_size, 0, True)
         predictions = self.predict_sequences_multiple(model, x_test, self.window_size)
-        print('pred', len(predictions))
-        print('x_test', len(x_test))
-        print('y_test', len(y_test))
+        # print('pred', len(predictions))
+        # print('x_test', len(x_test))
+        # print('y_test', len(y_test))
         if plot:
             self.plot_results_multiple(predictions, y_test, self.window_size)
         return predictions

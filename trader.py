@@ -13,7 +13,10 @@ from methods import lstm
 targets = ['SPY']
 
 def train_lstm():
-    window_size = 15
+    window_size = 2
+    epochs = 400
+    neurons = 1000
+    lr = 0.001
     db = mysql.connect(
         host=os.environ.get("MYSQL_HOST"),
         user=os.environ.get("MYSQL_USER"),
@@ -31,7 +34,10 @@ def train_lstm():
             trader = lstm.Trader()
             trader.prices = data_for_ticker
             trader.window_size = window_size
-            trader.model_path = "/var/keras/%s_ws-%d.h5" % (ticker, window_size)
+            trader.epochs = epochs
+            trader.neurons = neurons
+            trader.lr = lr
+            trader.model_path = "/var/keras/%s_win-%d_epoch-%d_neuron-%d_lr-%f.h5" % (ticker, window_size, epochs, neurons, lr)
             trader.train()
             data_for_ticker = []
         data_for_ticker.append(float(row[1]))
@@ -39,12 +45,19 @@ def train_lstm():
 
 
 def trade(trader):
-    window_size = 15
+    window_size = 2
+    epochs = 400
+    neurons = 1000
+    lr = 0.001
     for ticker in targets:
         historical = rs.stocks.get_stock_historicals(ticker, interval='5minute', span='day')
         close = np.array([float(row['close_price']) for row in historical])
         trader.prices = close
-        trader.model_path = "/var/keras/%s_ws-%d.h5" % (ticker, window_size)
+        trader.window_size = window_size
+        trader.epochs = epochs
+        trader.neurons = neurons
+        trader.lr = lr
+        trader.model_path = "/var/keras/%s_win-%d_epoch-%d_neuron-%d_lr-%f.h5" % (ticker, window_size, epochs, neurons, lr)
         trader.predict(True)
 
 def main():
