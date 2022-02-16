@@ -2,8 +2,11 @@ import numpy as np
 from scipy.ndimage.filters import uniform_filter1d
 
 class Trader:
-    def __init__(self, prices):
-        self.prices = prices
+    def __init__(self):
+        self.prices = []
+
+    def __repr__(self):
+        return "MA"
 
     def running_mean(self, n):
         # https://stackoverflow.com/a/43200476/2624391
@@ -13,4 +16,8 @@ class Trader:
 
     def predict(self):
         return self.running_mean(3)
+
+    def last_prediction(self, predictions):
+        # return the last 2 points
+        return predictions[-2:]
         

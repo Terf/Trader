@@ -1,3 +1,5 @@
 .env
 models
+*.pkl
+*.csv
 __pycache__

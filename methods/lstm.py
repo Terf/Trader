@@ -3,15 +3,16 @@ import sys
 import os
 import random
 import csv
+# import ta
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 from math import sqrt
 from sklearn.preprocessing import StandardScaler
 from pandas import Series
-from keras.models import Sequential, load_model
+from keras.models import Model, Sequential, load_model
 from keras.optimizers import Adam
-from keras.layers import Activation, Dense, Dropout, LSTM
+from keras.layers import Activation, Dense, Dropout, LSTM, Conv1D, MaxPool1D, Flatten, Input, concatenate
 
 
 class Trader:
@@ -22,7 +23,10 @@ class Trader:
         self.epochs = 100
         self.neurons = 100
         self.lr = 0.001
-        self.model_path = '/var/keras/model.h5'
+        self.model_path = '/opt/methods/models/model.h5'
+
+    def __repr__(self):
+        return "LSTM"
 
     def create_model(self, layer1, layer2, layer3, layer4, lr):
         model = Sequential()
@@ -38,6 +42,28 @@ class Trader:
         optimizer = Adam(lr=lr)
         model.compile(loss="mse", optimizer=optimizer)
         return model
+
+    # def create_functional_model(self, window_size, ta_features):
+    #     sequence = Input(shape=(window_size, 1), name='Sequence')
+    #     features = Input(shape=(ta_features,), name='Features')
+    #     conv = Sequential()
+    #     conv.add(Conv1D(10, 5, activation='relu', input_shape=(window_size, 1)))
+    #     conv.add(Conv1D(10, 5, activation='relu'))
+    #     conv.add(MaxPool1D(2))
+    #     conv.add(Dropout(0.5, seed=789))
+    #     conv.add(Conv1D(5, 6, activation='relu'))
+    #     conv.add(Conv1D(5, 6, activation='relu'))
+    #     conv.add(MaxPool1D(2))
+    #     conv.add(Dropout(0.5, seed=789))
+    #     conv.add(Flatten())
+    #     part1 = conv(sequence)
+    #     merged = concatenate([part1, features])
+    #     final = Dense(512, activation='relu')(merged)
+    #     final = Dropout(0.5, seed=789)(final)
+    #     final = Dense(2, activation='softmax')(final)
+    #     model = Model(inputs=[sequence, features], outputs=[final])
+    #     model.compile(loss='logcosh', optimizer='adam', metrics=['accuracy'])
+    #     return model
 
     def make_batches(self, batch_size, data_set):
         x = [data_set[i:batch_size + i]
@@ -121,6 +147,7 @@ class Trader:
             self.prices, self.window_size, training_pct, True)
 
         model = self.create_model(1, self.window_size, self.neurons, 1, self.lr)
+        # model = self.create_functional_model(self.window_size, self.ta_features)
 
         model.fit(x_train, y_train, batch_size=32, epochs=self.epochs,
                   validation_split=val_pct, shuffle=False)
@@ -154,3 +181,7 @@ class Trader:
         if plot:
             self.plot_results_multiple(predictions, y_test, self.window_size)
         return predictions
+
+    def last_prediction(self, predictions):
+        # return the last window
+        return predictions[-1]
